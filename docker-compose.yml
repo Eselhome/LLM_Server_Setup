@@ -30,11 +30,16 @@ services:
   ollama:
     container_name: ollama
     image: ollama/ollama:latest
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - CUDA_VISIBLE_DEVICES=0
+    # runtime: nvidia              # <--- ENTFERNEN (Veraltet oder Konflikt mit deploy)
+    # environment:                 # <--- ENTFERNEN (Überflüssig, wenn deploy: resources gesetzt ist)
+    #   - NVIDIA_VISIBLE_DEVICES=all
+    #   - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    #   - CUDA_VISIBLE_DEVICES=0
+    #   - LOG_LEVEL=debug
+    #   - OLLAMA_NUM_PARALLEL=4
+    #   - OLLAMA_MAX_LOADED_MODELS=4
+    #   - OLLAMA_CONTEXT_LENGTH=8096
+    environment: # Nur nicht-GPU-spezifische Variablen beibehalten
       - LOG_LEVEL=debug
       - OLLAMA_NUM_PARALLEL=4
       - OLLAMA_MAX_LOADED_MODELS=4
@@ -44,8 +49,10 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              capabilities: [gpu]
-              count: all
+              capabilities: [gpu] # count: all wird durch die capabilities: [gpu] impliziert
+              count: all # <--- HINZUFÜGEN oder die Zeile - driver: nvidia ... einfach ersetzen durch:
+            # - capabilities: [gpu]
+            #   count: all
     volumes:
       - ollama:/root/.ollama
       - models:/models
@@ -58,7 +65,6 @@ services:
         max-file: "2"
     networks:
       - ollama-net
-    restart: unless-stopped
     
   watchtower:
     image: containrrr/watchtower:latest
